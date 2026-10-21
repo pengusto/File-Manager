@@ -322,7 +322,9 @@ class ItemsAdapter(
                 }
             }
 
-            fileDirItems.any { it.isDirectory } -> RenameItemsDialog(activity, paths) {
+            fileDirItems.any { it.isDirectory } -> RenameItemsDialog(
+                activity, paths, onItemRenamed = { oldPath, newPath -> config.moveFavorite(oldPath, newPath) }
+            ) {
                 activity.runOnUiThread {
                     listener?.refreshFragment()
                     finishActMode()
@@ -944,7 +946,7 @@ class ItemsAdapter(
 
             ensureBackgroundThread {
                 selectedKeys.forEach { key ->
-                    config.removeFavorite(getItemWithKey(key)?.path ?: "")
+                    config.removeFavorite(getItemWithKey(key)?.path ?: "", includeDescendants = true)
                     val position = listItems.indexOfFirst { it.path.hashCode() == key }
                     if (position != -1) {
                         positions.add(position)

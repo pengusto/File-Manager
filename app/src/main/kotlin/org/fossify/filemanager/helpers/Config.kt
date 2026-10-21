@@ -44,23 +44,36 @@ class Config(context: Context) : BaseConfig(context) {
     }
 
     fun moveFavorite(oldPath: String, newPath: String) {
-        if (!favorites.contains(oldPath)) {
+        val oldRoot = oldPath.trimEnd('/')
+        val newRoot = newPath.trimEnd('/')
+        if (oldRoot.isEmpty() || newRoot.isEmpty() || oldRoot == newRoot) {
             return
         }
 
-        val currFavorites = HashSet<String>(favorites)
-        currFavorites.remove(oldPath)
-        currFavorites.add(newPath)
-        favorites = currFavorites
+        val current = favorites
+        val updated = current.mapTo(HashSet()) { path ->
+            if (path == oldRoot || path.startsWith("$oldRoot/")) {
+                newRoot + path.removePrefix(oldRoot)
+            } else {
+                path
+            }
+        }
+        if (updated != current) {
+            favorites = updated
+        }
     }
 
-    fun removeFavorite(path: String) {
-        if (!favorites.contains(path)) {
+    fun removeFavorite(path: String, includeDescendants: Boolean = false) {
+        val root = path.trimEnd('/')
+        if (includeDescendants && root.isEmpty()) {
+            return
+        }
+        if (!includeDescendants && !favorites.contains(path)) {
             return
         }
 
         val currFavorites = HashSet<String>(favorites)
-        currFavorites.remove(path)
+        currFavorites.removeAll { it == path || (includeDescendants && (it == root || it.startsWith("$root/"))) }
         favorites = currFavorites
     }
 
